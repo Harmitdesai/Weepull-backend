@@ -6,8 +6,8 @@ async function createSeller(email, accountId) {
   try {
     // Insert the new seller into the database
     const [result] = await connection.execute(
-      "INSERT INTO users (sellerId) VALUES (?) WHERE email = ?",
-      [email, accountId]
+      "UPDATE users SET sellerId = ? WHERE email = ?",
+      [accountId, email]
     );
     connection.release();
     return result;

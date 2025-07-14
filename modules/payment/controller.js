@@ -50,21 +50,17 @@ async function onboardSellerController(req, res){
             country: 'US',            // or your sellers’ country
             business_type: 'individual', // or 'company'
           });
-      
-          const accountRes = account.json();
   
-          const serviceRes = await createSeller(email, accountRes.id);
+          createSeller(email, account.id);
 
           const linkRes = await stripe.accountLinks.create({
-            account: accountRes.id,
+            account: account.id,
             refresh_url: "http://localhost:3000/upload/text",   
             return_url: "http://localhost:3000/api/payment/updateOnBoard",     
             type: 'account_onboarding',
           });
-  
-          const link = await linkRes.json();
       
-          return res.status(200).json({ success: true, data: {url : link.url}});
+          return res.status(200).json({ success: true, data: {url : linkRes.url}});
         } catch (err) {
           console.error(err);
           res.status(500).json({success: false, error: err.message });
@@ -72,14 +68,12 @@ async function onboardSellerController(req, res){
       }
     
       try {
-          const link = await stripe.accountLinks.create({
+          const linkRes = await stripe.accountLinks.create({
           account: await checkSellerId(email),
           refresh_url: "http://localhost:3000/upload/text",   
           return_url: "http://localhost:3000/api/payment/updateOnBoard",     
           type: 'account_onboarding',
           });
-
-          const linkRes = link.json();
 
           res.json({ url: linkRes.url, success: true });
       } catch (err) {

@@ -64,7 +64,6 @@ async function fetchPostData(postId, total) {
 
         const checkerResponse = await index.fetch(data);
 
-        // console.log("Checker Response:", JSON.parse(checkerResponse.records[fid.toString()].metadata.text));
         const res = [];
         for (const item in checkerResponse.records) {
             const obj = {};
