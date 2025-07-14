@@ -1,0 +1,27 @@
+{
+  "name": "weepull-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "author": "Harmit",
+  "license": "ISC",
+  "dependencies": {
+    "@pinecone-database/pinecone": "^5.1.1",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0",
+    "next": "^15.1.4",
+    "nodemon": "^3.1.9",
+    "openai": "^4.87.3",
+    "postcss": "^8.5.0",
+    "shadcn": "^2.1.8",
+    "stripe": "^18.1.0",
+    "tailwindcss": "^3.4.17"
+  }
+}
