@@ -8,7 +8,6 @@ async function verifyUserController(req, res) {
   try {
     const user = await verifyUser(email);
     if (user.length > 0) {
-      console.log("User found:", user);
       return res.json({ success: true, user });
     } else {
       return res.status(401).json({ success: false, message: "User not found" });
@@ -26,7 +25,6 @@ async function saveUserController(req, res) {
   try {
     const newUser = await saveUser(name, email);
     const data = res.json({ success: true, user: newUser });
-    console.log("User saved:", data);
     return data;
   } catch (error) {
     console.error(error);
@@ -40,7 +38,6 @@ async function checkOnBoardedController(req, res) {
   try {
     const status = await checkOnBoarded(email);
     const data = res.json({ success: true, data: status });
-    console.log("Onboarded status:", data);
     return data;
   } catch (error) {
     console.error(error);

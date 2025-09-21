@@ -7,7 +7,6 @@ async function verifyUser(email) {
     const connection = await sqlPool.getConnection();
     const [result, fields] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
     connection.release();
-    console.log("User verification result:", result);
     return result; // Return user if found, else undefined
   } catch (error) {
     throw new Error("Error verifying user");
@@ -28,7 +27,6 @@ async function saveUser(name, email) {
     // Insert the new user
     const [result] = await connection.execute("INSERT INTO users (username, email) VALUES (?, ?)", [name, email]);
     connection.release();
-    console.log("User saved:", result);
     return { id: result.userid, name, email };
   } catch (error) {
     console.log("Error saving user:", error);

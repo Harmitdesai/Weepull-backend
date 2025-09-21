@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { createSellerController, onboardSellerController } = require("./controller");
+const { checkOnBoardedController, getCheckoutLinkController } = require("./controller");
+const { stripeWebhookController } = require("./webhook");
 
-router.post("/createSeller", createSellerController); // POST to create a seller
-router.post("/onboardSeller", onboardSellerController); // POST to onboard a seller
+router.post("/checkOnBoarded", checkOnBoardedController); // POST to check if a seller is onboarded and return the link if not
+router.post("/stripeWebhook", express.raw({ type: "application/json" }), stripeWebhookController); // POST to handle Stripe webhook events
+router.post("/getCheckoutLink", getCheckoutLinkController); // POST to create a Stripe Checkout session and return the link
 
 module.exports = router;

@@ -1,7 +1,10 @@
 // //
 const {pinecone, sqlPool} = require('../../common/db');
+const { tryCatchSqlWrapper } = require("../../common/utils/decorator");
 const OpenAI = require("openai");
 require('dotenv').config({ path: '../../.env' });
+
+const { getUserIdFromEmail } = require("../utils/sqlQueries");
 
 // initialiing openai
 const openai = new OpenAI({
@@ -11,9 +14,7 @@ const openai = new OpenAI({
 // getting index from pinecone
 const index = pinecone.index("textdata", "https://textdata-12z6pih.svc.aped-4627-b74a.pinecone.io");
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function uploadTextData(textData, email, postId) {
+async function uploadTextDat(textData, email, postId) {
     var dataid;
     // making connection  with the database
     const connection = await sqlPool.getConnection();
@@ -51,36 +52,11 @@ async function uploadTextData(textData, email, postId) {
             },
         }]);
         
-        await sleep(10);
-        // checking if the text data is saved in the pinecone index
-        const checkerResponse = await index.fetch([dataid.toString()]);
-        if (checkerResponse.records[dataid.toString()].id === dataid.toString()) {
-            // closing connection with SQL
-            connection.release();
-
-            if (postId > -1) {
-                // inserting new entry in post_data table /////////
-                console.log("Post ID:", postId);
-                const [postDataResult] = await connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, parseInt(dataid)]);
-                if (postDataResult.affectedRows === 0) {
-                    //removing the entry from pinecone index///////
-                    await index.delete([dataid.toString()]);
-                    throw new Error("Error saving post data");
-                }
-            }
-
-            return true;
-        }
+         const [postDataResult] = await connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, parseInt(dataid)]);
         
-        ///////////// we have to delete the entry from the textdata table if it is not saved in the pinecone index //////////////
-        const removeTextData = connection.execute("DELETE FROM data WHERE dataid = ?", [dataid]);
-        // closing connection with SQL
-        connection.release();
-        if (removeTextData.affectedRows === 0) {
-            throw new Error("Error removing textData");
-        }
-
-        return false;
+         connection.release();
+         
+         return true;
 
         ///////////// There might be some error in the above code //////////////
         ///////////// Because when we fetches the data back from the pinecone if it will not be there for some reason it may will throw error and function won't return false //////////////
@@ -94,6 +70,38 @@ async function uploadTextData(textData, email, postId) {
         throw error;
     }
 }
+
+const uploadTextData = tryCatchSqlWrapper((connection, textData, email, postId) => {
+        userid = getUserIdFromEmail(email);
+
+        // inserting new textdata entry in the textdata table and retrieving the dataid
+        const [result] = connection.execute("INSERT INTO data (userid, textData) VALUES (?,?)", [userid, JSON.stringify(textData)]);
+
+        const insertId = result.insertId;
+        
+        // getting embeddings for the text data
+        // const embeddingResponse = openai.embeddings.create({
+        //     model: "text-embedding-3-small",
+        //     input: JSON.stringify(textData),
+        //     encoding_format: "float",
+        // });
+        
+        // const embeddings = embeddingResponse.data?.[0]?.embedding;
+        
+        
+        // // adding the text data to the pinecone index
+        // index.upsert([{
+        //     id : dataid.toString(),
+        //     values : embeddings,
+        //     metadata : {
+        //         'text' : JSON.stringify(textData)
+        //     },
+        // }]);
+        
+        connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, parseInt(insertId)]);
+
+        return true;
+});
 
 async function uploadPost(post, email) {
 

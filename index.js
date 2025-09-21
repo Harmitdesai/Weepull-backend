@@ -11,7 +11,13 @@ const userRoutes = require('./modules/users/route');
 const dataUploadRoutes = require('./modules/dataUpload/route');
 const dataFetchRoutes = require('./modules/dataFetch/route');
 const paymentRoutes = require('./modules/payment/route');
-app.use(express.json());
+app.use((req, res, next) => {
+  if (req.originalUrl === "/payment/stripeWebhook") {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
 app.use(cors());
 
 

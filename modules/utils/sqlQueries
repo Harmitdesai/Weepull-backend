@@ -1,0 +1,11 @@
+const { tryCatchSqlWrapper } = require("../../common/utils/decorator");
+
+const getUserIdFromEmail = tryCatchSqlWrapper(async (connection, email) => {
+    const [data, fields] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
+    const userid = data[0].userid;
+    return userid;
+});
+
+module.exports = {
+    getUserIdFromEmail,
+};
