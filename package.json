@@ -12,7 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "@pinecone-database/pinecone": "^5.1.1",
+    "archiver": "^7.0.1",
     "autoprefixer": "^10.4.20",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mysql2": "^3.12.0",

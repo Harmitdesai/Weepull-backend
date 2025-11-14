@@ -71,13 +71,14 @@ async function uploadTextDat(textData, email, postId) {
     }
 }
 
-const uploadTextData = tryCatchSqlWrapper((connection, textData, email, postId) => {
-        userid = getUserIdFromEmail(email);
+const uploadTextData = tryCatchSqlWrapper(async (connection, textData, email, postId) => {
+        userid = await getUserIdFromEmail(email);
+        text = await JSON.stringify(textData);
 
         // inserting new textdata entry in the textdata table and retrieving the dataid
-        const [result] = connection.execute("INSERT INTO data (userid, textData) VALUES (?,?)", [userid, JSON.stringify(textData)]);
+        const result = await connection.execute("INSERT INTO data (userid, textData) VALUES (?,?)", [userid, text]);
 
-        const insertId = result.insertId;
+        const insertId = result[0].insertId;
         
         // getting embeddings for the text data
         // const embeddingResponse = openai.embeddings.create({
@@ -98,7 +99,7 @@ const uploadTextData = tryCatchSqlWrapper((connection, textData, email, postId) 
         //     },
         // }]);
         
-        connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, parseInt(insertId)]);
+        connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, insertId]);
 
         return true;
 });

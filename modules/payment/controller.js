@@ -1,4 +1,4 @@
-const { updateStripeConnectAccountId, getOnBoardingStatus, createOrder } = require("./service");
+const { updateStripeConnectAccountId, getOnBoardingStatus, createOrder, getBalance, reduceBalance, getOrders, deleteOrder } = require("./service");
 
 const Stripe = require('stripe');
 require('dotenv').config();
@@ -82,7 +82,8 @@ async function getCheckoutLinkController(req, res) {
       ],
       metadata: { order_id: orderid, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point },
       payment_intent_data: {
-        metadata: { order_id: orderid, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point }  // This adds metadata to the PaymentIntent
+        metadata: { order_id: orderid, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point },  // This adds metadata to the PaymentIntent
+        transfer_group: `ORDER_#${orderid}`,
       },
       mode: 'payment',
       success_url: "http://localhost:3000/",
@@ -98,10 +99,58 @@ async function getCheckoutLinkController(req, res) {
   finally {
 
   }
+}
 
+async function proceedRedeemController(req, res) {
+  const { email } = req.body;
+  const balance = await getBalance(email);
+  const stripe_connected_account_id = (await getOnBoardingStatus(email)).stripe_connected_account_id;
+
+  try {
+    const transfer = await stripe.transfers.create({
+      amount: balance * 100,
+      currency: 'usd',
+      destination: stripe_connected_account_id
+    });
+
+    await reduceBalance(email, balance);
+
+    const loginLink = await stripe.accounts.createLoginLink(stripe_connected_account_id);
+
+    return res.status(200).json({ data: { loginLink: loginLink.url }, success: true });
+
+  } catch (error) {
+    console.error('Transfer failed:', error.message);
+    res.status(500).json({ error: error.message, success: false });
+  }
+}
+
+async function getOrdersController(req, res) {
+  const { email } = req.body;
+  try {
+    const orders = await getOrders(email);
+    return res.status(200).json({ data: { orders: orders }, success: true });
+
+  } catch (error) {
+    console.error("Error getting orders:", error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+}
+
+async function deleteOrderController(req, res) {
+  const { order_id } = req.body;
+  try {
+    await deleteOrder(order_id);
+    return res.status(200).json({ data: { success: true }, success: true });
+  } catch (error) {
+    return res.status(500).json({ error: error.message, success: false });
+  }
 }
 
 module.exports = {
   checkOnBoardedController,
-  getCheckoutLinkController
+  getCheckoutLinkController,
+  proceedRedeemController,
+  getOrdersController,
+  deleteOrderController
 };

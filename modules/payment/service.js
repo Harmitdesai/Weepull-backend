@@ -92,6 +92,29 @@ async function getOnBoardingStatus(email) {
   }
 }
 
+const getBalance = tryCatchSqlWrapper(async (connection, email) => {
+        const [rows, fields] = await connection.execute("SELECT balance FROM users WHERE email=?", [email]);
+        return rows[0].balance;
+});
+
+const reduceBalance = tryCatchSqlWrapper(async (connection, email, balance) => {
+        const sql = `UPDATE users SET balance = balance - ? WHERE email = ?`;
+        await connection.execute(sql, [balance, email]);
+});
+
+const getOrders = tryCatchSqlWrapper(async (connection, email) => {
+        const sql = "SELECT o.order_id, DATE(o.create_at) AS order_date, TIME(o.create_at) AS order_time, dr.title AS post_title, o.total_unit AS num_datapoints FROM orders o JOIN dataRequests dr ON o.post_id = dr.postid JOIN users u ON o.user_id = u.userid WHERE o.payment_status = 'paid' AND u.email = ? ORDER BY o.create_at DESC"
+        const [rows, fields] = await connection.execute(sql, [email]);
+        return rows;
+});
+
+const deleteOrder = tryCatchSqlWrapper(async (connection, order_id) => {
+        const [result] = await connection.execute("DELETE FROM orders WHERE order_id = ?", [order_id]);
+        if (result.affectedRows <= 0){
+          throw new Error("No order found with the given order_id");
+        }
+});
+
 module.exports = {
   addBalance,
   createOrder,
@@ -102,4 +125,8 @@ module.exports = {
   updateOnBoardedStatus,
   updateOrderPaymentStatus,
   updateStripeConnectAccountId,
+  getBalance,
+  reduceBalance,
+  getOrders,
+  deleteOrder
 };

@@ -1,5 +1,6 @@
 const { pinecone, sqlPool } = require("../../common/db");
-
+const { tryCatchSqlWrapper } = require("../../common/utils/decorator");
+const { get } = require("./route");
 const index = pinecone.index("textdata", "https://textdata-12z6pih.svc.aped-4627-b74a.pinecone.io");
 
 async function fetchPost() {
@@ -101,9 +102,21 @@ async function fetchPostNumberOfAvailableData(postId) {
     }
 }
 
+const getBalance = tryCatchSqlWrapper(async (connection, email) => {
+        const [rows, fields] = await connection.execute("SELECT balance FROM users WHERE email=?", [email]);
+        return rows[0].balance;
+});
+
+const getOrderData = tryCatchSqlWrapper(async (connection, order_id) => {
+        const [rows, fields] = await connection.execute("SELECT d.textData FROM data d JOIN order_data o ON d.dataid = o.data_id WHERE o.order_id=?", [order_id]);
+        return rows.map(row => row.textData);
+});
+
 module.exports = {
     fetchPost,
     fetchUserPost,
     fetchPostData,
     fetchPostNumberOfAvailableData,
+    getBalance,
+    getOrderData
 };
