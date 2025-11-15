@@ -1,6 +1,5 @@
 const { pinecone, sqlPool } = require("../../common/db");
 const { tryCatchSqlWrapper } = require("../../common/utils/decorator");
-const { get } = require("./route");
 const index = pinecone.index("textdata", "https://textdata-12z6pih.svc.aped-4627-b74a.pinecone.io");
 
 async function fetchPost() {
