@@ -24,13 +24,13 @@ async function uploadTextDat(textData, email, postId) {
         const [user] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
         const userid = user[0].userid;
 
-        // inserting new textdata entry in the textdata table and retrieving the dataid
-        const [insertingResult] = await connection.execute("INSERT INTO data (userid) VALUES (?)", [userid]);
+        // inserting new textdata entry in the data table and retrieving the data_id
+        const [insertingResult] = await connection.execute("INSERT INTO data (user_id) VALUES (?)", [userid]);
         if (insertingResult.affectedRows === 0) {
             throw new Error("Error saving textData");
         }
-        dataid = insertingResult.insertId;
-        console.log("Text data saved:", dataid);
+        data_id = insertingResult.insertId;
+        console.log("Text data saved:", data_id);
 
         
         // getting embeddings for the text data
@@ -45,14 +45,14 @@ async function uploadTextDat(textData, email, postId) {
         
         // adding the text data to the pinecone index
         await index.upsert([{
-            id : dataid.toString(),
+            id : data_id.toString(),
             values : embeddings,
             metadata : {
                 'text' : JSON.stringify(textData)
             },
         }]);
-        
-         const [postDataResult] = await connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, parseInt(dataid)]);
+
+         const [postDataResult] = await connection.execute("INSERT INTO post_data (post_id, data_id) VALUES (?,?)", [postId, parseInt(data_id)]);
         
          connection.release();
          
@@ -61,7 +61,7 @@ async function uploadTextDat(textData, email, postId) {
         ///////////// There might be some error in the above code //////////////
         ///////////// Because when we fetches the data back from the pinecone if it will not be there for some reason it may will throw error and function won't return false //////////////
     } catch (error) {
-        const removeTextData = connection.execute("DELETE FROM data WHERE dataid = ?", [dataid]);
+        const removeTextData = connection.execute("DELETE FROM data WHERE data_id = ?", [data_id]);
         connection.release();
         if (removeTextData.affectedRows === 0) {
             throw new Error("Error removing textData");
@@ -72,36 +72,35 @@ async function uploadTextDat(textData, email, postId) {
 }
 
 const uploadTextData = tryCatchSqlWrapper(async (connection, textData, email, postId) => {
-        userid = await getUserIdFromEmail(email);
-        text = await JSON.stringify(textData);
+    const user_id = await getUserIdFromEmail(email);
+    const text = await JSON.stringify(textData);
 
-        // inserting new textdata entry in the textdata table and retrieving the dataid
-        const result = await connection.execute("INSERT INTO data (userid, textData) VALUES (?,?)", [userid, text]);
+    // inserting new textdata entry in the data table and retrieving the data_id
+    const result = await connection.execute("INSERT INTO data (user_id, text_data) VALUES (?,?)", [user_id, text]);
 
-        const insertId = result[0].insertId;
-        
-        // getting embeddings for the text data
-        // const embeddingResponse = openai.embeddings.create({
-        //     model: "text-embedding-3-small",
-        //     input: JSON.stringify(textData),
-        //     encoding_format: "float",
-        // });
-        
-        // const embeddings = embeddingResponse.data?.[0]?.embedding;
-        
-        
-        // // adding the text data to the pinecone index
-        // index.upsert([{
-        //     id : dataid.toString(),
-        //     values : embeddings,
-        //     metadata : {
-        //         'text' : JSON.stringify(textData)
-        //     },
-        // }]);
-        
-        connection.execute("INSERT INTO post_data (postid,dataid) VALUES (?,?)", [postId, insertId]);
+    const insertId = result[0].insertId;
 
-        return true;
+    // getting embeddings for the text data
+    // const embeddingResponse = openai.embeddings.create({
+    //     model: "text-embedding-3-small",
+    //     input: JSON.stringify(textData),
+    //     encoding_format: "float",
+    // });
+
+    // const embeddings = embeddingResponse.data?.[0]?.embedding;
+
+    // // adding the text data to the pinecone index
+    // index.upsert([{
+    //     id : data_id.toString(),
+    //     values : embeddings,
+    //     metadata : {
+    //         'text' : JSON.stringify(textData)
+    //     },
+    // }]);
+
+    connection.execute("INSERT INTO post_data (post_id, data_id) VALUES (?,?)", [postId, insertId]);
+
+    return true;
 });
 
 async function uploadPost(post, email) {
@@ -110,10 +109,10 @@ async function uploadPost(post, email) {
     const connection = await sqlPool.getConnection();
     try {
         // getting the userid from the users table using the email
-        const [user] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
-        const userid = user[0].userid;
-        // inserting new post entry in the posts table
-        const [insertingResult] = await connection.execute("INSERT INTO dataRequests (title, example, description, userid, type) VALUES (?,?,?,?,?)", [post.title, post.example, post.description, userid, post.type]);
+    const [user] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
+    const user_id = user[0].user_id;
+    // inserting new post entry in the data_requests table
+    const [insertingResult] = await connection.execute("INSERT INTO data_requests (title, example, description, user_id, type) VALUES (?,?,?,?,?)", [post.title, post.example, post.description, user_id, post.type]);
         if (insertingResult.affectedRows === 0) {
             throw new Error("Error saving post");
         }

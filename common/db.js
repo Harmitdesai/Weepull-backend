@@ -10,10 +10,10 @@ const pinecone = new Pinecone({
 
 // Create a connection pool
 const pool = mysql.createPool({
-  host: 'localhost', // MySQL server host
-  user: 'root', // MySQL username
-  password: process.env.SQL_PASS, // MySQL password
-  database: process.env.SQL_DB, // Database name
+  host: process.env.DB_HOST, // MySQL server host
+  user: process.env.DB_USER, // MySQL username
+  password: process.env.DB_PASSWORD, // MySQL password
+  database: process.env.DB_NAME, // Database name
   connectionLimit: 10
 });
 

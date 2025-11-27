@@ -7,7 +7,7 @@ async function fetchPost() {
     const connection = await sqlPool.getConnection();
     try {
         // getting the post data from the database
-        const [post] = await connection.execute("SELECT * FROM dataRequests");
+        const [post] = await connection.execute("SELECT * FROM data_requests");
         return post;
     } catch (error) {
         console.error(error);
@@ -24,14 +24,14 @@ async function fetchUserPost(email) {
     try {
         // getting userid based on email
         const [userId] = await connection.execute(
-            "SELECT userid FROM users WHERE email = ?",
+            "SELECT user_id FROM users WHERE email = ?",
             [email]
         );
         
         // getting the post data based on user id
         const [post] = await connection.execute(
-            "SELECT * FROM dataRequests WHERE userId = ?",
-            [userId[0].userid]
+            "SELECT * FROM data_requests WHERE user_id = ?",
+            [userId[0].user_id]
         );
         return post;
     } catch(error) {
@@ -50,14 +50,14 @@ async function fetchPostData(postId, total) {
 
         // getting the post data based on post id
         const [dataids] = await connection.execute(
-            `SELECT dataid FROM post_data WHERE postid = ? LIMIT ${parseInt(total)}`,
+            `SELECT data_id FROM post_data WHERE post_id = ? LIMIT ${parseInt(total)}`,
             [parseInt(postId)]
         )
 
         const data = [];
 
         for (const item in dataids) {
-            data.push(dataids[item].dataid.toString());
+            data.push(dataids[item].data_id.toString());
         }
 
         console.log("Data:", data);
@@ -88,7 +88,7 @@ async function fetchPostNumberOfAvailableData(postId) {
     try {
         // getting the post data based on post id
         const [dataids] = await connection.execute(
-            "SELECT dataid FROM post_data WHERE postid = ?",
+            "SELECT data_id FROM post_data WHERE post_id = ?",
             [parseInt(postId)]
         );
         return dataids.length;
@@ -107,8 +107,8 @@ const getBalance = tryCatchSqlWrapper(async (connection, email) => {
 });
 
 const getOrderData = tryCatchSqlWrapper(async (connection, order_id) => {
-        const [rows, fields] = await connection.execute("SELECT d.textData FROM data d JOIN order_data o ON d.dataid = o.data_id WHERE o.order_id=?", [order_id]);
-        return rows.map(row => row.textData);
+    const [rows, fields] = await connection.execute("SELECT d.text_data FROM data d JOIN order_data o ON d.data_id = o.data_id WHERE o.order_id=?", [order_id]);
+    return rows.map(row => row.text_data);
 });
 
 module.exports = {

@@ -27,7 +27,7 @@ async function saveUser(name, email) {
     // Insert the new user
     const [result] = await connection.execute("INSERT INTO users (username, email) VALUES (?, ?)", [name, email]);
     connection.release();
-    return { id: result.userid, name, email };
+    return { id: result.insertId, name, email };
   } catch (error) {
     console.log("Error saving user:", error);
     throw new Error("Error saving user");
@@ -37,11 +37,11 @@ async function saveUser(name, email) {
 async function checkOnBoarded(email) {
   try {
     const connection = await sqlPool.getConnection();
-    const [result, fields] = await connection.execute("SELECT onBoarded FROM users WHERE email = ?", [email]);
+    const [result, fields] = await connection.execute("SELECT onboarded FROM users WHERE email = ?", [email]);
     connection.release();
 
     if (result.length > 0) {
-      return result[0].onBoarded; // Return the onboarded status
+      return result[0].onboarded; // Return the onboarded status
     } else {
       throw new Error("User not found");
     }

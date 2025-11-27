@@ -5,7 +5,7 @@ const { getUserIdFromEmail } = require("../utils/sqlQueries");
 
 const addBalance = tryCatchSqlWrapper(async (connection, data_ids, pricePerUnit) => {
   placeholders = data_ids.map(() => '?').join(',');
-  const sql = `UPDATE users JOIN data ON users.userid = data.userid SET users.balance = users.balance + ${pricePerUnit} WHERE data.dataid IN (${placeholders})`;
+  const sql = `UPDATE users JOIN data ON users.user_id = data.user_id SET users.balance = users.balance + ${pricePerUnit} WHERE data.data_id IN (${placeholders})`;
   connection.execute(sql, data_ids);
 });
 
@@ -30,15 +30,15 @@ async function updateStripeConnectAccountId(email, accountId) {
 }
 
 const createOrder = tryCatchSqlWrapper(async (connection, postId, totalDataPoints, pricePerData, email) => {
-  const userid = await getUserIdFromEmail(email);
+  const user_id = await getUserIdFromEmail(email);
 
-  await connection.execute("INSERT INTO orders (user_id, post_id, total_unit, price_per_unit, payment_status) VALUES (?,?,?,?,'unpaid')",[userid, postId, totalDataPoints, pricePerData]);
+  await connection.execute("INSERT INTO orders (user_id, post_id, total_unit, price_per_unit, payment_status) VALUES (?,?,?,?,'unpaid')",[user_id, postId, totalDataPoints, pricePerData]);
   
   const [order, orderfields] = await connection.execute("SELECT LAST_INSERT_ID() AS order_id;");
 
-  const [rows, postfields] = await connection.execute(`SELECT dataid FROM post_data WHERE postid = ? LIMIT ${Number(totalDataPoints)} `, [Number(postId)]);
+  const [rows, postfields] = await connection.execute(`SELECT data_id FROM post_data WHERE post_id = ? LIMIT ${Number(totalDataPoints)} `, [Number(postId)]);
 
-  values = rows.map(row => [order[0].order_id,row.dataid]);
+  values = rows.map(row => [order[0].order_id,row.data_id]);
 
   await connection.query("INSERT INTO order_data (order_id, data_id) VALUES ?",[values]);
 
@@ -62,7 +62,7 @@ const updateOrderPaymentStatus = tryCatchSqlWrapper((connection, order_id, statu
 const removePostData = tryCatchSqlWrapper(async (connection, post_id, data_ids) => {
   const placeholders = data_ids.map(() => "?").join(","); // "?,?,?"
   const params = [post_id, ...data_ids]
-  return await connection.execute(`DELETE FROM post_data WHERE postid = ? AND dataid IN (${placeholders})`, params);
+  return await connection.execute(`DELETE FROM post_data WHERE post_id = ? AND data_id IN (${placeholders})`, params);
 });
 
 const getDataIdsFromOrderId = tryCatchSqlWrapper(async (connection, order_id) => {
