@@ -7,9 +7,10 @@ async function verifyUser(email) {
     const connection = await sqlPool.getConnection();
     const [result, fields] = await connection.execute("SELECT * FROM users WHERE email = ?", [email]);
     connection.release();
-    return result; // Return user if found, else undefined
+    return result; // Return array of users (empty if not found)
   } catch (error) {
-    throw new Error("Error verifying user");
+    console.error("Database error in verifyUser:", error.message, error);
+    throw new Error("Database error: " + error.message);
   }
 }
 
