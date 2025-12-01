@@ -42,10 +42,10 @@ async function fetchPostDataController(req, res) {
 }
 
 async function fetchPostNumberOfAvailableDataController(req, res) {
-    const { postId } = req.body;
+    const { post_id } = req.body;
     try {
         
-        const response = await fetchPostNumberOfAvailableData(postId);
+        const response = await fetchPostNumberOfAvailableData(post_id);
         return res.json({ success: true, data: response});
     
     } catch(error) {

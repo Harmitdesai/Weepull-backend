@@ -43,7 +43,7 @@ async function fetchUserPost(email) {
     }
 }
 
-async function fetchPostData(postId, total) {
+async function fetchPostData(post_id, total) {
     // making connection with the database
     const connection = await sqlPool.getConnection();
     try {
@@ -51,7 +51,7 @@ async function fetchPostData(postId, total) {
         // getting the post data based on post id
         const [dataids] = await connection.execute(
             `SELECT data_id FROM post_data WHERE post_id = ? LIMIT ${parseInt(total)}`,
-            [parseInt(postId)]
+            [parseInt(post_id)]
         )
 
         const data = [];
@@ -82,14 +82,14 @@ async function fetchPostData(postId, total) {
     }
 }
 
-async function fetchPostNumberOfAvailableData(postId) {
+async function fetchPostNumberOfAvailableData(post_id) {
     // making connection with the database
     const connection = await sqlPool.getConnection();
     try {
         // getting the post data based on post id
         const [dataids] = await connection.execute(
             "SELECT data_id FROM post_data WHERE post_id = ?",
-            [parseInt(postId)]
+            [parseInt(post_id)]
         );
         return dataids.length;
     } catch(error) {

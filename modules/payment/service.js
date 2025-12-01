@@ -29,15 +29,15 @@ async function updateStripeConnectAccountId(email, accountId) {
   }
 }
 
-const createOrder = tryCatchSqlWrapper(async (connection, postId, totalDataPoints, pricePerData, email) => {
+const createOrder = tryCatchSqlWrapper(async (connection, post_id, totalDataPoints, pricePerData, email) => {
   const user_id = await getUserIdFromEmail(email);
+  console.log("✌🏻✌🏻✌🏻 User ID fetched:", user_id);
 
-  await connection.execute("INSERT INTO orders (user_id, post_id, total_unit, price_per_unit, payment_status) VALUES (?,?,?,?,'unpaid')",[user_id, postId, totalDataPoints, pricePerData]);
+  await connection.execute("INSERT INTO orders (user_id, post_id, total_unit, price_per_unit, payment_status) VALUES (?,?,?,?,'unpaid')",[user_id, post_id, totalDataPoints, pricePerData]);
   
   const [order, orderfields] = await connection.execute("SELECT LAST_INSERT_ID() AS order_id;");
 
-  const [rows, postfields] = await connection.execute(`SELECT data_id FROM post_data WHERE post_id = ? LIMIT ${Number(totalDataPoints)} `, [Number(postId)]);
-
+  const [rows, postfields] = await connection.execute(`SELECT data_id FROM post_data WHERE post_id = ? LIMIT ${Number(totalDataPoints)} `, [Number(post_id)]);
   values = rows.map(row => [order[0].order_id,row.data_id]);
 
   await connection.query("INSERT INTO order_data (order_id, data_id) VALUES ?",[values]);
@@ -103,7 +103,7 @@ const reduceBalance = tryCatchSqlWrapper(async (connection, email, balance) => {
 });
 
 const getOrders = tryCatchSqlWrapper(async (connection, email) => {
-        const sql = "SELECT o.order_id, DATE(o.create_at) AS order_date, TIME(o.create_at) AS order_time, dr.title AS post_title, o.total_unit AS num_datapoints FROM orders o JOIN dataRequests dr ON o.post_id = dr.postid JOIN users u ON o.user_id = u.userid WHERE o.payment_status = 'paid' AND u.email = ? ORDER BY o.create_at DESC"
+        const sql = "SELECT o.order_id, DATE(o.created_at) AS order_date, TIME(o.created_at) AS order_time, dr.title AS post_title, o.total_unit AS num_datapoints FROM orders o JOIN data_requests dr ON o.post_id = dr.post_id JOIN users u ON o.user_id = u.user_id WHERE o.payment_status = 'paid' AND u.email = ? ORDER BY o.created_at DESC"
         const [rows, fields] = await connection.execute(sql, [email]);
         return rows;
 });

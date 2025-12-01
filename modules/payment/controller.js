@@ -62,12 +62,12 @@ async function checkOnBoardedController(req, res) {
 }
 
 async function getCheckoutLinkController(req, res) {
-  const { postId, totalDataPoints, email, postTitle } = req.body;
+  const { post_id, totalDataPoints, email, postTitle } = req.body;
   try {
 
-    orderid = await createOrder( postId, totalDataPoints, cost_per_data_point, email);
+    order_id = await createOrder( post_id, totalDataPoints, cost_per_data_point, email);
     const session = await stripe.checkout.sessions.create({
-    client_reference_id: `ORDER_#${orderid}`,
+    client_reference_id: `ORDER_#${order_id}`,
     line_items: [
         {
           price_data: {
@@ -80,10 +80,10 @@ async function getCheckoutLinkController(req, res) {
           quantity: totalDataPoints,
         },
       ],
-      metadata: { order_id: orderid, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point },
+      metadata: { order_id: order_id, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point },
       payment_intent_data: {
-        metadata: { order_id: orderid, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point },  // This adds metadata to the PaymentIntent
-        transfer_group: `ORDER_#${orderid}`,
+        metadata: { order_id: order_id, total_data_points: totalDataPoints, cost_per_data_point: cost_per_data_point },  // This adds metadata to the PaymentIntent
+        transfer_group: `ORDER_#${order_id}`,
       },
       mode: 'payment',
       success_url: "http://localhost:3000/",

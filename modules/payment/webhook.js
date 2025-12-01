@@ -42,18 +42,17 @@ async function stripeWebhookController(req, res) {
         switch (event.type) {
             case "account.updated":
                 // handle account updates
-                handleAccountUpdated(event);
+                await handleAccountUpdated(event);
                 break;
 
             case "payment_intent.succeeded":
                 // handle successful payments
-                handlePaymentSucceeded(event);
+                await handlePaymentSucceeded(event);
                 break;
-            break;
 
             case "customer.subscription.deleted":
             // handle subscription cancellations
-            break;
+                break;
 
             default:
             console.log(`Unhandled event type ${event.type}`);
