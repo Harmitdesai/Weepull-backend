@@ -6,9 +6,9 @@ async function uploadTextDataController(req, res) {
 
   try {
 
-    const postId = req.query.postId;
+    const post_id = req.query.post_id;
 
-    const response = await uploadTextData(data, email, postId);
+    const response = await uploadTextData(data, email, post_id);
     if (response){
         return res.json({ success: true, message: "Text data uploaded successfully" });
     }

@@ -74,7 +74,6 @@ async function getOrderDataController(req, res) {
 
     try {
         const response = await getOrderData(order_id);
-        console.log("Order Data Response:", response);
 
         const textContent = response.join('\n');
 
