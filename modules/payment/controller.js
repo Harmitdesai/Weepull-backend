@@ -4,6 +4,7 @@ const Stripe = require('stripe');
 require('dotenv').config();
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const FE_URL = process.env.FE_URL;
 
 const cost_per_data_point = 0.1;
 
@@ -18,11 +19,14 @@ async function checkOnBoardedController(req, res) {
     }
 
     if (sqlData.onBoarded) {
+      console.log("User already onboarded : ", email);
       return res.status(200).json({ data:{
         onBoarded: true,
         accountLink: null
       }, success: true });
     }
+
+    console.log("Generating onboarding link for user:", email);
 
     let stripe_connected_account_id = sqlData.stripe_connected_account_id
 
@@ -40,11 +44,13 @@ async function checkOnBoardedController(req, res) {
 
     const linkRes = await stripe.accountLinks.create({
           account: stripe_connected_account_id,
-          refresh_url: "http://localhost:3000/upload/text",   
-          return_url: "http://localhost:3000/upload/text",
+          refresh_url: `${FE_URL}/upload/text`,   
+          return_url: `${FE_URL}/upload/text`,
           type: 'account_onboarding',
           });
     
+    console.log("Link generated");
+
     return res.status(200).json({ data: {
       onBoarded: false,
       accountLink: linkRes.url
@@ -86,7 +92,7 @@ async function getCheckoutLinkController(req, res) {
         transfer_group: `ORDER_#${order_id}`,
       },
       mode: 'payment',
-      success_url: "http://localhost:3000/",
+      success_url: `${FE_URL}/`,
     });
     return res.status(200).json({ data: {
       url: session.url
