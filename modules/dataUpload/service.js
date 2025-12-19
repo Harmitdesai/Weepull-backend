@@ -98,7 +98,7 @@ const uploadTextData = tryCatchSqlWrapper(async (connection, textData, email, po
     //     },
     // }]);
 
-    connection.execute("INSERT INTO post_data (post_id, data_id) VALUES (?,?)", [postId, insertId]);
+    await connection.execute("INSERT INTO post_data (post_id, data_id) VALUES (?,?)", [postId, insertId]);
 
     return true;
 });
