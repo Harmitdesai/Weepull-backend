@@ -27,14 +27,14 @@ async function handlePaymentSucceeded(event) {
     }
 }
 
-async function stripeWebhookController(req, res) {
+async function stripeWebhookConnectedController(req, res) {
     const sig = req.headers["stripe-signature"];
 
     try {
         const event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET
+        process.env.STRIPE_WEBHOOK_CONNECTED_SECRET
         );
 
         console.log("Verified event:", event.type);
@@ -65,4 +65,42 @@ async function stripeWebhookController(req, res) {
     }
 }
 
-module.exports = { stripeWebhookController };
+async function stripeWebhookPlatformController(req, res) {
+    const sig = req.headers["stripe-signature"];
+
+    try {
+        const event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_PLATFORM_SECRET
+        );
+
+        console.log("Verified event:", event.type);
+
+        switch (event.type) {
+            case "account.updated":
+                // handle account updates
+                await handleAccountUpdated(event);
+                break;
+
+            case "payment_intent.succeeded":
+                // handle successful payments
+                await handlePaymentSucceeded(event);
+                break;
+
+            case "customer.subscription.deleted":
+            // handle subscription cancellations
+                break;
+
+            default:
+            console.log(`Unhandled event type ${event.type}`);
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Stripe Webhook failed:", err.message);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+}
+
+module.exports = { stripeWebhookConnectedController, stripeWebhookPlatformController };
