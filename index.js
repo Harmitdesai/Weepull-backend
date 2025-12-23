@@ -18,7 +18,7 @@ const dataUploadRoutes = require('./modules/dataUpload/route');
 const dataFetchRoutes = require('./modules/dataFetch/route');
 const paymentRoutes = require('./modules/payment/route');
 app.use((req, res, next) => {
-  if (req.originalUrl === "/payment/stripeWebhook") {
+  if (req.originalUrl === "/payment/stripeWebhook/connected" || req.originalUrl === "/payment/stripeWebhook/platform") {
     next();
   } else {
     express.json()(req, res, next);
